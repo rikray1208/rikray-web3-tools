@@ -1,1 +1,2 @@
-export * from './Web3Tools'
+export * from './IWeb3Tools'
+export * from './IUtils'

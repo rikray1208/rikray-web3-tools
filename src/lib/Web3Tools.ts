@@ -1,21 +1,25 @@
 import { ethers, JsonRpcProvider, TransactionRequest, Wallet } from "ethers"
 import { ERC20_ABI } from "../ABI"
-import { IWeb3Tools } from "../interfaces"
+import { IUtils, IWeb3Tools } from "../interfaces"
+import { Utils } from "./Utils"
 
 export class Web3Tools implements IWeb3Tools {
+  utils: IUtils
   constructor(
     public readonly provider: JsonRpcProvider,
     public readonly wallet: Wallet,
     public readonly acceleration: number,
     public readonly sleep?: number
-  ) {}
+  ) {
+    this.utils = new Utils()
+  }
 
   public async sleepFn(seconds: number) {
     await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
   }
   public async getIncreasedGasPrice() {
     const gasPrice = Number((await this.provider.getFeeData()).gasPrice)
-    return Math.round(gasPrice + (gasPrice * (this.acceleration / 100)))
+    return this.utils.increaseNumber(gasPrice, this.acceleration)
   }
 
   public async getTokenAmount(tokenName: string, tokenAddress: string, amount: number, allAmount: boolean) {
@@ -87,7 +91,8 @@ export class Web3Tools implements IWeb3Tools {
   }
 
   public async sendTransaction(tx: TransactionRequest, logMessage: string = 'sendTransaction') {
-    const gasLimit = await this.wallet.estimateGas(tx)
+    const estimateGas = await this.wallet.estimateGas(tx)
+    const gasLimit = this.utils.increaseNumber(Number(estimateGas), 30)
     const gasPrice = await this.getIncreasedGasPrice()
     const txResponse = await this.wallet.sendTransaction({...tx, gasPrice, gasLimit})
     console.log(`${this.wallet.address}: ${logMessage} started, hash: ${txResponse.hash}`)

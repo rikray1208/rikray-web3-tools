@@ -16,6 +16,7 @@ export interface IWeb3Tools {
   ) => Promise<GetTokenAmountResponse>
   getAllowance: (tokenAddress: string, contractAddress: string) => Promise<number>
   approve: (tokenName: string, tokenAddress: string, contractAddress: string, amountWei: number) => Promise<void>
+  withdrawWETH: (wethAddress: string) => Promise<TransactionReceipt>
   sendTransaction: (tx: TransactionRequest, logMessage?: string) => Promise<TransactionReceipt>
 }
 

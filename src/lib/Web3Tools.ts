@@ -87,6 +87,20 @@ export class Web3Tools implements IWeb3Tools {
     }
   }
 
+  public async withdrawWETH(wethAddress: string){
+    const tokenContract = new ethers.Contract(wethAddress, ERC20_ABI, this.wallet)
+    const amountWei = await tokenContract.balanceOf(this.wallet.address)
+
+    const tx: TransactionRequest = {
+      to: wethAddress,
+      data: null
+    }
+
+    tx.data = tokenContract.interface.encodeFunctionData('withdraw', [amountWei])
+
+    return await this.sendTransaction(tx, 'Withdraw')
+  }
+
   public async sendTransaction(tx: TransactionRequest, logMessage: string = 'sendTransaction') {
     const estimateGas = await this.wallet.estimateGas(tx)
     const gasLimit = Utils.increaseNumber(Number(estimateGas), 30)

@@ -1,25 +1,25 @@
-import { ethers, JsonRpcProvider, TransactionRequest, Wallet } from "ethers"
-import { ERC20_ABI } from "../ABI"
-import { IWeb3Tools } from "../interfaces"
+import {ethers, JsonRpcProvider, TransactionReceipt, TransactionRequest, Wallet} from "ethers"
+
 import { Utils } from "./Utils"
+import { ERC20_ABI } from "../ABI"
+
+import type { GetTokenAmountResponse, IWeb3Tools, LogFunc } from "../interfaces"
 
 export class Web3Tools implements IWeb3Tools {
   constructor(
     public readonly provider: JsonRpcProvider,
     public readonly wallet: Wallet,
     public readonly acceleration: number,
-    public readonly sleep?: number
-  ) {}
+    public readonly sleep?: number,
+    public readonly logFunc: LogFunc = console.log
+) {}
 
-  public async sleepFn(seconds: number) {
-    await new Promise((resolve) => setTimeout(resolve, seconds * 1000))
-  }
-  public async getIncreasedGasPrice() {
-    const gasPrice = Number((await this.provider.getFeeData()).gasPrice)
-    return Utils.increaseNumber(gasPrice, this.acceleration)
-  }
-
-  public async getTokenAmount(tokenName: string, tokenAddress: string, amount: number, allAmount: boolean) {
+  public async getTokenAmount(
+    tokenName: string,
+    tokenAddress: string,
+    amount: number,
+    allAmount: boolean
+  ): Promise<GetTokenAmountResponse> {
     const data = {
       valueWei: 0,
       valueEther: 0,
@@ -87,7 +87,7 @@ export class Web3Tools implements IWeb3Tools {
     }
   }
 
-  public async withdrawWETH(wethAddress: string){
+  public async withdrawWETH(wethAddress: string): Promise<TransactionReceipt>{
     const tokenContract = new ethers.Contract(wethAddress, ERC20_ABI, this.wallet)
     const amountWei = await tokenContract.balanceOf(this.wallet.address)
 
@@ -101,19 +101,24 @@ export class Web3Tools implements IWeb3Tools {
     return await this.sendTransaction(tx, 'Withdraw')
   }
 
-  public async sendTransaction(tx: TransactionRequest, logMessage: string = 'sendTransaction') {
+  public async sendTransaction(tx: TransactionRequest, logMessage: string = 'sendTransaction'): Promise<TransactionReceipt> {
     const estimateGas = await this.wallet.estimateGas(tx)
     const gasLimit = Utils.increaseNumber(Number(estimateGas), 30)
     const gasPrice = await this.getIncreasedGasPrice()
     const txResponse = await this.wallet.sendTransaction({...tx, gasPrice, gasLimit})
-    process.stdout.write(`${this.wallet.address}: ${logMessage} started, hash: ${txResponse.hash}`)
+    this.logFunc(`${this.wallet.address}: ${logMessage} started, hash: ${txResponse.hash}`)
     const txReceipt  = await txResponse.wait()
-    process.stdout.write(`${this.wallet.address}: ${logMessage} finished, hash: ${txResponse.hash}`)
+    this.logFunc(`${this.wallet.address}: ${logMessage} finished, hash: ${txResponse.hash}`)
     if (this.sleep) {
-      process.stdout.write(`${this.wallet.address}: sleep for ${this.sleep} seconds`)
-      await this.sleepFn(this.sleep)
+      this.logFunc(`${this.wallet.address}: sleep for ${this.sleep} seconds`)
+      await Utils.sleepFn(this.sleep)
     }
 
     return txReceipt
+  }
+
+  private async getIncreasedGasPrice(): Promise<number> {
+    const gasPrice = Number((await this.provider.getFeeData()).gasPrice)
+    return Utils.increaseNumber(gasPrice, this.acceleration)
   }
 }

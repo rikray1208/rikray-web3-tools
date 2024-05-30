@@ -1,13 +1,12 @@
 import { JsonRpcProvider, TransactionReceipt, TransactionRequest, Wallet } from "ethers"
 
 export interface IWeb3Tools {
-  readonly provider: JsonRpcProvider,
+  readonly provider: JsonRpcProvider
   readonly wallet: Wallet
   readonly acceleration: number
   readonly sleep?: number
+  readonly logFunc?: LogFunc
 
-  sleepFn: (seconds: number) => Promise<void>
-  getIncreasedGasPrice: () => Promise<number>
   getTokenAmount: (
     tokenName: string,
     tokenAddress: string,
@@ -18,6 +17,7 @@ export interface IWeb3Tools {
   approve: (tokenName: string, tokenAddress: string, contractAddress: string, amountWei: number) => Promise<void>
   withdrawWETH: (wethAddress: string) => Promise<TransactionReceipt>
   sendTransaction: (tx: TransactionRequest, logMessage?: string) => Promise<TransactionReceipt>
+
 }
 
 export interface GetTokenAmountResponse {
@@ -25,3 +25,5 @@ export interface GetTokenAmountResponse {
   valueEther: number,
   balance: number
 }
+
+export type LogFunc = (message: string) => void

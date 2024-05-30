@@ -17,5 +17,8 @@
   },
   "peerDependencies": {
     "ethers": "*"
+  },
+  "repository": {
+    "url": "https://github.com/rikray1208/rikray-web3-tools"
   }
 }

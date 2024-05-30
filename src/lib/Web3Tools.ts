@@ -106,11 +106,11 @@ export class Web3Tools implements IWeb3Tools {
     const gasLimit = Utils.increaseNumber(Number(estimateGas), 30)
     const gasPrice = await this.getIncreasedGasPrice()
     const txResponse = await this.wallet.sendTransaction({...tx, gasPrice, gasLimit})
-    console.log(`${this.wallet.address}: ${logMessage} started, hash: ${txResponse.hash}`)
+    process.stdout.write(`${this.wallet.address}: ${logMessage} started, hash: ${txResponse.hash}`)
     const txReceipt  = await txResponse.wait()
-    console.log(`${this.wallet.address}: ${logMessage} finished, hash: ${txResponse.hash}`)
+    process.stdout.write(`${this.wallet.address}: ${logMessage} finished, hash: ${txResponse.hash}`)
     if (this.sleep) {
-      console.log(`${this.wallet.address}: sleep for ${this.sleep} seconds`)
+      process.stdout.write(`${this.wallet.address}: sleep for ${this.sleep} seconds`)
       await this.sleepFn(this.sleep)
     }
 

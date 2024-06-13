@@ -70,7 +70,7 @@ export class Web3Tools implements IWeb3Tools {
         data: null,
       };
 
-      tx.data = contract.interface.encodeFunctionData('0x095ea7b3', [contractAddress, amountWei]);
+      tx.data = contract.interface.encodeFunctionData('0x095ea7b3', [contractAddress, amountWei.toString()]);
 
       await this.sendTransaction(tx, `${tokenName} approve`);
     }

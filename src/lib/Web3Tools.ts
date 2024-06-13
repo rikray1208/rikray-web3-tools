@@ -34,16 +34,16 @@ export class Web3Tools implements IWeb3Tools {
     data.balance = balanceEther;
 
     if (allAmount) {
-      data.valueWei = balanceWei;
-      data.valueEther = parseFloat(balanceEther.toFixed(7));
+      if (isNative) {
+        data.valueWei = Math.floor(balanceWei * 0.99);
+        data.valueEther = parseFloat((balanceEther * 0.99).toFixed(7));
+      } else {
+        data.valueWei = balanceWei;
+        data.valueEther = parseFloat(balanceEther.toFixed(7));
+      }
     } else {
       data.valueWei = amount * 10 ** decimals;
       data.valueEther = parseFloat(amount.toFixed(7));
-    }
-
-    if (isNative) {
-      data.valueWei = Math.floor(balanceWei * 0.99);
-      data.valueEther = parseFloat((balanceEther * 0.99).toFixed(7));
     }
 
     return data;
@@ -70,7 +70,10 @@ export class Web3Tools implements IWeb3Tools {
         data: null,
       };
 
-      tx.data = contract.interface.encodeFunctionData('0x095ea7b3', [contractAddress, amountWei.toString()]);
+      tx.data = contract.interface.encodeFunctionData('0x095ea7b3', [
+        contractAddress,
+        amountWei.toString(),
+      ]);
 
       await this.sendTransaction(tx, `${tokenName} approve`);
     }

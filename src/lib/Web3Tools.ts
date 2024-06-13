@@ -15,7 +15,7 @@ export class Web3Tools implements IWeb3Tools {
 ) {}
 
   public async getTokenAmount(
-    tokenName: string,
+    isNative: boolean,
     tokenAddress: string,
     amount: number,
     allAmount: boolean
@@ -26,37 +26,24 @@ export class Web3Tools implements IWeb3Tools {
       balance: 0,
     }
 
-    if (tokenName === 'ETH') {
-      const balanceWei = Number(await this.provider.getBalance(this.wallet.address))
-      const balanceEther = Number(ethers.formatEther(balanceWei.toString()))
-      data.balance = balanceEther
+    const contract = new ethers.Contract(tokenAddress, ERC20_ABI, this.provider)
+    const decimals = Number(await contract.decimals())
+    const balanceWei = Number(await contract.balanceOf(this.wallet.address))
 
-      if (allAmount) {
-        data.valueWei = Math.floor(balanceWei * 0.99)
-        data.valueEther = parseFloat((balanceEther * 0.99).toFixed(7))
-      } else {
-        if (balanceEther < amount) {
-          throw new Error(`${this.wallet.address}: Insufficient balance to swap ${amount} ${tokenName}`)
-        }
+    const balanceEther = balanceWei / 10 ** decimals
+    data.balance = balanceEther
 
-        data.valueWei = Number(ethers.parseEther(amount.toString()))
-        data.valueEther = Number(amount.toFixed(7))
-      }
+    if (allAmount) {
+      data.valueWei = balanceWei
+      data.valueEther = parseFloat(balanceEther.toFixed(7))
     } else {
-      const contract = new ethers.Contract(tokenAddress, ERC20_ABI, this.provider)
-      const decimals = Number(await contract.decimals())
-      const balanceWei = Number(await contract.balanceOf(this.wallet.address))
+      data.valueWei = amount * 10 ** decimals
+      data.valueEther = parseFloat(amount.toFixed(7))
+    }
 
-      const balanceEther = balanceWei / 10 ** decimals
-      data.balance = balanceEther
-
-      if (allAmount) {
-        data.valueWei = balanceWei
-        data.valueEther = parseFloat(balanceEther.toFixed(7))
-      } else {
-        data.valueWei = amount * 10 ** decimals
-        data.valueEther = parseFloat(amount.toFixed(7))
-      }
+    if (isNative) {
+      data.valueWei = Math.floor(balanceWei * 0.99)
+      data.valueEther = parseFloat((balanceEther * 0.99).toFixed(7))
     }
 
     return data

@@ -62,7 +62,7 @@ export class Web3Tools implements IWeb3Tools {
     tokenName: string,
     tokenAddress: string,
     contractAddress: string,
-    amountWei: number,
+    amountWei: number | bigint,
   ): Promise<void> {
     const contract = new ethers.Contract(tokenAddress, ERC20_ABI, this.wallet);
     const allowance = await this.getAllowance(tokenAddress, contractAddress);

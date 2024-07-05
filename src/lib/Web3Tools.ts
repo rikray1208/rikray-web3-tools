@@ -24,25 +24,29 @@ export class Web3Tools implements IWeb3Tools {
       valueWei: 0,
       valueEther: 0,
       balance: 0,
+      valueWeiBigint: 0n,
     };
 
     const contract = new ethers.Contract(tokenAddress, ERC20_ABI, this.provider);
-    const decimals = Number(await contract.decimals());
-    const balanceWei = Number(await contract.balanceOf(this.wallet.address));
+    const decimals: bigint = await contract.decimals();
+    const balanceWei: bigint = await contract.balanceOf(this.wallet.address);
 
-    const balanceEther = balanceWei / 10 ** decimals;
+    const balanceEther = Number(balanceWei) / Number(10n ** decimals);
     data.balance = balanceEther;
 
     if (allAmount) {
       if (isNative) {
-        data.valueWei = Math.floor(balanceWei * 0.99);
+        data.valueWei = Number((balanceWei * 99n) / 100n);
+        data.valueWeiBigint = (balanceWei * 99n) / 100n;
         data.valueEther = parseFloat((balanceEther * 0.99).toFixed(7));
       } else {
-        data.valueWei = balanceWei;
+        data.valueWei = Number(balanceWei);
+        data.valueWeiBigint = balanceWei;
         data.valueEther = parseFloat(balanceEther.toFixed(7));
       }
     } else {
-      data.valueWei = amount * 10 ** decimals;
+      data.valueWei = amount * 10 ** Number(decimals);
+      data.valueWeiBigint = BigInt(data.valueWei);
       data.valueEther = parseFloat(amount.toFixed(7));
     }
 

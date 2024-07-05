@@ -26,6 +26,7 @@ export interface IWeb3Tools {
 
 export interface GetTokenAmountResponse {
   valueWei: number;
+  valueWeiBigint: bigint;
   valueEther: number;
   balance: number;
 }

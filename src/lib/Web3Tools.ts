@@ -6,6 +6,8 @@ import { ERC20_ABI } from '../ABI';
 import type { GetTokenAmountResponse, IWeb3Tools, LogFunc } from '../interfaces';
 
 export class Web3Tools implements IWeb3Tools {
+  private readonly DEFAULT_TIMEOUT = 360 * 1000
+
   constructor(
     public readonly provider: JsonRpcProvider,
     public readonly wallet: Wallet,
@@ -100,13 +102,14 @@ export class Web3Tools implements IWeb3Tools {
   public async sendTransaction(
     tx: TransactionRequest,
     logMessage: string = 'sendTransaction',
+    timeout: number = this.DEFAULT_TIMEOUT
   ): Promise<TransactionReceipt> {
     const estimateGas = await this.wallet.estimateGas(tx);
     const gasLimit = Utils.increaseNumber(Number(estimateGas), 30);
     const gasPrice = await this.getIncreasedGasPrice();
     const txResponse = await this.wallet.sendTransaction({ ...tx, gasPrice, gasLimit });
     this.logFunc(`${this.wallet.address}: ${logMessage} started, hash: ${txResponse.hash}`);
-    const txReceipt = await txResponse.wait();
+    const txReceipt = await txResponse.wait(1, timeout);
     this.logFunc(`${this.wallet.address}: ${logMessage} finished, hash: ${txResponse.hash}`);
     if (this.sleep) {
       this.logFunc(`${this.wallet.address}: sleep for ${this.sleep} seconds`);

@@ -19,9 +19,16 @@ export interface IWeb3Tools {
     tokenAddress: string,
     contractAddress: string,
     amountWei: number | bigint,
+    sleep?: number,
+    timeout?: number,
   ) => Promise<void>;
   withdrawWETH: (wethAddress: string) => Promise<TransactionReceipt>;
-  sendTransaction: (tx: TransactionRequest, logMessage?: string, timeout?: number) => Promise<TransactionReceipt>;
+  sendTransaction: (
+    tx: TransactionRequest,
+    logMessage?: string,
+    sleep?: number,
+    timeout?: number,
+  ) => Promise<TransactionReceipt>;
 }
 
 export interface GetTokenAmountResponse {
